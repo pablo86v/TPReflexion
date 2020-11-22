@@ -62,6 +62,25 @@ public class UBean {
 	 * @return
 	 */
 	public static Object ejecutarGet(Object obj, String att) {
-		return new Object();
+		Class<? extends Object> oClass = obj.getClass();
+		String nombreGetter = "get" + att;
+		Object valor = null;
+		Method[] metodos = oClass.getDeclaredMethods();
+		
+		for(Method m:metodos) {
+			if(m.getName().equalsIgnoreCase(nombreGetter)) {
+	
+					try {
+						valor = m.invoke(obj, null);
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				break;
+			}
+		}
+		
+		return valor;
 	}
 }
