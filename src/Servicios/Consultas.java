@@ -11,22 +11,21 @@ import Utilidades.UBean;
 public class Consultas {
 	
 	public static void guardar(Object obj){
-		String consulta = "insert into ";
-		ArrayList<Field> listaAtributos;
+		ArrayList<Field> listaAttr;
+		String strConsulta = "insert into ";
+		strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " (";
+		listaAttr = UBean.obtenerAtributos(obj);
 		
-		consulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " (";
-		listaAtributos = UBean.obtenerAtributos(obj);
-		
-		for(Field atributo: listaAtributos) {
-			consulta += atributo.getAnnotation(Columna.class).nombre() + ", ";
+		for(Field atributo: listaAttr) {
+			strConsulta += atributo.getAnnotation(Columna.class).nombre() + ", ";
 		}
 		
-		consulta = consulta.substring(0, consulta.length() - 2);
+		strConsulta = strConsulta.substring(0, strConsulta.length() - 2);
 		
-		consulta += ") values (?,?,?)";
+		strConsulta += ") values (?,?,?)";
 		
 		//TODO ejecutar la sentencia sql
-		System.out.println(consulta);		
+		System.out.println(strConsulta);		
 	}
 
 	public static void modificar(Object obj){
@@ -52,7 +51,21 @@ public class Consultas {
 	}
 
 	public static void eliminar(Object obj) {
-
+		ArrayList<Field> listaAttr;
+		String strConsulta = "delete from ";
+		String id = "";
+		strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " ";
+		listaAttr = UBean.obtenerAtributos(obj);
+		
+		for(Field atributo: listaAttr) {
+			if(atributo.getAnnotation(Columna.class).nombre().equals("id")) {
+				id = UBean.ejecutarGet(obj, atributo.getName()).toString();
+				break;
+			}
+		}
+		
+		strConsulta += "where id=" + id;
+		System.out.println(strConsulta);
 	}
 	
 	public static void obtenerPorId(Class c, Object id) {
