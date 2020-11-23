@@ -68,8 +68,19 @@ public class Consultas {
 		System.out.println(strConsulta);
 	}
 	
-	public static void obtenerPorId(Class c, Object id) {
-		
+	public static void obtenerPorId(Class clazz, Object id) {
+				
+		Object obj;
+		String strConsulta = "select * from ";
+		try {
+			obj = clazz.newInstance();
+			strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " "; 
+			strConsulta += "where id=" + id;
+			System.out.println(strConsulta);
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }
