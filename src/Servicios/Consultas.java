@@ -1,53 +1,110 @@
 package Servicios;
-
-
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-
 import Anotaciones.Columna;
 import Anotaciones.Tabla;
 import Utilidades.UBean;
+import Utilidades.UConexion;
 
 public class Consultas {
+	
+	
+	private static Object executeQuery(String sql, Class clazz) {
+		Object obj = null;
+		try {
+			Connection conn = UConexion.openConn();
+			PreparedStatement pstm = conn.prepareStatement(sql);
+			ResultSet rs = pstm.executeQuery();
+			ArrayList<Field> listaAttr;
+			listaAttr = UBean.obtenerAtributos(clazz.newInstance());
+			obj = clazz.newInstance();
+			while(rs.next()) {				
+				for (Field attr : listaAttr) {
+					if(attr.getType().equals(String.class)) {
+						UBean.ejecutarSet(obj,attr.getName(), rs.getString(attr.getName()));
+					}else if(attr.getType().equals(int.class)) {				
+						UBean.ejecutarSet(obj,attr.getName(), rs.getInt(attr.getName()));	
+					}else {
+						UBean.ejecutarSet(obj,attr.getName(), rs.getObject(attr.getName()));
+					}
+				}
+			}
+			
+			conn.close();
+		} catch (SQLException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return obj;
+	}
+	
+	private static void executeNonQuery(String sql) {
+		try {
+			Connection conn = UConexion.openConn();
+			PreparedStatement pstm = conn.prepareStatement(sql);
+			pstm.execute();
+			conn.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	public static void guardar(Object obj){
 		ArrayList<Field> listaAttr;
 		String strConsulta = "insert into ";
 		strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " (";
 		listaAttr = UBean.obtenerAtributos(obj);
-		
+		String attrValue;
+		String strValues = ") values(";
 		for(Field atributo: listaAttr) {
 			strConsulta += atributo.getAnnotation(Columna.class).nombre() + ", ";
+			attrValue = UBean.ejecutarGet(obj, atributo.getName()).toString();
+			if(atributo.getType().equals(String.class))
+			{
+				strValues += "'" + attrValue + "',";
+			}else {
+				strValues += attrValue + ",";
+			}
 		}
-		
 		strConsulta = strConsulta.substring(0, strConsulta.length() - 2);
+		strValues = strValues.substring(0, strValues.length()-1) + ")";
+		strConsulta += strValues;
 		
-		strConsulta += ") values (?,?,?)";
-		
-		//TODO ejecutar la sentencia sql
-		System.out.println(strConsulta);		
+		executeNonQuery(strConsulta);
 	}
 
 	public static void modificar(Object obj){
 		String strConsulta = "update ";
 		String id = "";
 		ArrayList<Field> listaAttr;
+		String attrValue ;
 		strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " set ";
 		listaAttr = UBean.obtenerAtributos(obj);
-
+		
 		for(Field atributo: listaAttr) {
+			attrValue = UBean.ejecutarGet(obj, atributo.getName()).toString();
 			if(atributo.getAnnotation(Columna.class).nombre().equalsIgnoreCase("id")) {
-				id = UBean.ejecutarGet(obj, atributo.getName()).toString();
+				id = attrValue;
 			} else {
 		    	strConsulta += atributo.getAnnotation(Columna.class).nombre() + "=";
-				strConsulta += "'" + UBean.ejecutarGet(obj, atributo.getName()).toString() + "' ";	
+		    	if(atributo.getType().equals(String.class))
+		    	{
+		    		strConsulta += "'" + attrValue + "', ";
+		    	}else {
+		    		strConsulta += attrValue ;
+		    	}
 			}
 		}
+		strConsulta = strConsulta.substring(0, strConsulta.length() - 2);
+		strConsulta += " where id=" + id;
 		
-		strConsulta += "where id=" + id;
-		
-		//TODO ejecutar
-		System.out.println(strConsulta);
+		executeNonQuery(strConsulta);
 	}
 
 	public static void eliminar(Object obj) {
@@ -65,22 +122,24 @@ public class Consultas {
 		}
 		
 		strConsulta += "where id=" + id;
-		System.out.println(strConsulta);
+		executeNonQuery(strConsulta);
 	}
 	
-	public static void obtenerPorId(Class clazz, Object id) {
+	public static Object obtenerPorId(Class clazz, Object id) {
 				
-		Object obj;
+		Object obj = null;
 		String strConsulta = "select * from ";
 		try {
 			obj = clazz.newInstance();
 			strConsulta += obj.getClass().getAnnotation(Tabla.class).nombre() + " "; 
 			strConsulta += "where id=" + id;
-			System.out.println(strConsulta);
+
+			obj = executeQuery(strConsulta, clazz);
+			
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return obj;
 	}
-	
 }

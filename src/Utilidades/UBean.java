@@ -31,7 +31,8 @@ public class UBean {
 	 * @throws IllegalArgumentException 
 	 * @throws IllegalAccessException 
 	 */
-	public static void ejecutarSet(Object obj, String att, Object valor) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public static void ejecutarSet(Object obj, String att, Object valor) 
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Class<? extends Object> c = obj.getClass();
 		Field [] attrs = c.getDeclaredFields();
 				
@@ -42,13 +43,7 @@ public class UBean {
 			for(Method m :metodos) {
 				if(m.getName().equalsIgnoreCase(nombreSetter)) {
 					Object[] params = new Object[1];
-					if(f.getType().equals(String.class)) {
-						params[0]="String";	
-					}else if(f.getType().equals(int.class)) {
-						params[0]=32639409;	
-					}else {
-						params[0]=null;
-					}
+					params[0] = valor;
                     m.invoke(obj, params);
 				}
 			}

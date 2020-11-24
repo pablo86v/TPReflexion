@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import Servicios.Consultas;
+import Utilidades.UConexion;
 
 public class Program {
 
@@ -18,22 +19,15 @@ public class Program {
 			String bd = "jdbc:mysql://localhost:3306/test";
 			Connection conn = DriverManager.getConnection(bd, "root","");
 			
-			//PreparedStatement st = conn.prepareStatement("insert into persona values (1,32639409,'Pablo','Valenzuela')");
-			//st.execute();
+	
 			
 			
-			Persona p = new Persona(1,"n","a");
+			Persona p ;
 			
-			Consultas.obtenerPorId(Persona.class, 1);
-			
-			
-			//PreparedStatement st2 = conn.prepareStatement("select * from persona");
-			//ResultSet rs = st2.executeQuery();
-			
-			
-			//while(rs.next()) {
-			//	System.out.println(rs.getString("nombre"));
-			//}
+			p = (Persona) Consultas.obtenerPorId(Persona.class, 1);
+
+			System.out.println(p.toString());
+
 			
 			
 			conn.close();

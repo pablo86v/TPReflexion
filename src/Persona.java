@@ -47,11 +47,12 @@ public class Persona {
 		this.id = id;
 	}
 	
+	
 	@Override
 	public String toString() {
-		return this.nombre + " " + this.apellido;
+		return "Persona [id=" + id + ", nombre=" + nombre + ", apellido=" + apellido + "]";
 	}
-	
+
 	@Override
 	public int hashCode() {
 		int primo = 31;
