@@ -1,7 +1,6 @@
 package Servicios;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,39 +15,44 @@ public class Consultas {
 	
 	private static Object executeQuery(String sql, Class clazz) {
 		Object obj = null;
+		
 		try {
-			Connection conn = UConexion.openConn();
-			PreparedStatement pstm = conn.prepareStatement(sql);
-			ResultSet rs = pstm.executeQuery();
 			ArrayList<Field> listaAttr;
 			listaAttr = UBean.obtenerAtributos(clazz.newInstance());
 			obj = clazz.newInstance();
+			
+			UConexion uConn = new UConexion();
+			PreparedStatement pstm = uConn.openConn().prepareStatement(sql);
+			ResultSet rs = pstm.executeQuery();
+	
 			while(rs.next()) {				
 				for (Field attr : listaAttr) {
 					if(attr.getType().equals(String.class)) {
 						UBean.ejecutarSet(obj,attr.getName(), rs.getString(attr.getName()));
 					}else if(attr.getType().equals(int.class)) {				
 						UBean.ejecutarSet(obj,attr.getName(), rs.getInt(attr.getName()));	
+					}else if(attr.getType().equals(double.class)) {
+						UBean.ejecutarSet(obj,attr.getName(), rs.getDouble(attr.getName()));
 					}else {
 						UBean.ejecutarSet(obj,attr.getName(), rs.getObject(attr.getName()));
 					}
 				}
 			}
 			
-			conn.close();
+			uConn.closeConn();
 		} catch (SQLException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}	
 		return obj;
 	}
 	
-	private static void executeNonQuery(String sql) {
+	public static void executeNonQuery(String sql) {
 		try {
-			Connection conn = UConexion.openConn();
-			PreparedStatement pstm = conn.prepareStatement(sql);
+			UConexion uConn = new UConexion();
+			PreparedStatement pstm = uConn.openConn().prepareStatement(sql);
 			pstm.execute();
-			conn.close();
+			uConn.closeConn();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -65,11 +69,11 @@ public class Consultas {
 		for(Field atributo: listaAttr) {
 			strConsulta += atributo.getAnnotation(Columna.class).nombre() + ", ";
 			attrValue = UBean.ejecutarGet(obj, atributo.getName()).toString();
-			if(atributo.getType().equals(String.class))
+			if(atributo.getType().equals(int.class))
 			{
-				strValues += "'" + attrValue + "',";
-			}else {
 				strValues += attrValue + ",";
+			}else {
+				strValues += "'" + attrValue + "',";
 			}
 		}
 		strConsulta = strConsulta.substring(0, strConsulta.length() - 2);

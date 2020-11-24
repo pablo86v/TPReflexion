@@ -30,8 +30,6 @@ public class UConexion {
 		return uConexion;
 	}
 	
-	
-	
 	private static void createDefaultParams(File paramsFile) {
 		try {
 		      if (paramsFile.createNewFile()) {

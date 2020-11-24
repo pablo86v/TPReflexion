@@ -1,3 +1,5 @@
+import java.util.Date;
+
 import Anotaciones.Columna;
 import Anotaciones.Tabla;
 
@@ -10,7 +12,8 @@ public class Persona {
 	@Columna(nombre="nombre")
 	private String nombre;
 	@Columna(nombre="apellido")
-	public String apellido;
+	private String apellido;
+
 	
 	public Persona() {
 		
